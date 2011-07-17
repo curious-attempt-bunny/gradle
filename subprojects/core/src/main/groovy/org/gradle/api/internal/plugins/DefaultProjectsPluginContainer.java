@@ -37,6 +37,10 @@ public class DefaultProjectsPluginContainer extends DefaultPluginCollection<Plug
         return addPluginInternal(getTypeForId(id));
     }
 
+    public Plugin apply(String pluginId, ClassLoader classLoader) {
+        return addPluginInternal(getTypeForId(pluginId, classLoader));
+    }
+
     public <T extends Plugin> T apply(Class<T> type) {
         return addPluginInternal(type);
     }
@@ -100,6 +104,10 @@ public class DefaultProjectsPluginContainer extends DefaultPluginCollection<Plug
 
     protected Class<? extends Plugin> getTypeForId(String id) {
         return pluginRegistry.getTypeForId(id);
+    }
+
+    private Class<? extends Plugin> getTypeForId(String pluginId, ClassLoader classLoader) {
+        return pluginRegistry.getTypeForId(pluginId, classLoader);
     }
 
     private Plugin<Project> providePlugin(Class<? extends Plugin> type) {

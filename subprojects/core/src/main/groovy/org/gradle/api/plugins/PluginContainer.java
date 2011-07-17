@@ -37,6 +37,8 @@ public interface PluginContainer extends PluginCollection<Plugin> {
      */
     Plugin apply(String id);
 
+    Plugin apply(String pluginId, ClassLoader classLoader);
+
     /**
      * Applies a plugin to the project. This usually means that the plugin uses the project API to add and modify the
      * state of the project. This method can be called an arbitrary number of times for a particular plugin type. The

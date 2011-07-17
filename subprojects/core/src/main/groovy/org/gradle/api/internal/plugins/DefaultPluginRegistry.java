@@ -71,6 +71,10 @@ public class DefaultPluginRegistry implements PluginRegistry {
     }
 
     public Class<? extends Plugin> getTypeForId(String pluginId) {
+        return this.getTypeForId(pluginId, classLoader);
+    }
+
+    public Class<? extends Plugin> getTypeForId(String pluginId, ClassLoader classLoader) {
         if (parent != null) {
             try {
                 return parent.getTypeForId(pluginId);

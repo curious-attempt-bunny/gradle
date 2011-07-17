@@ -28,5 +28,7 @@ public interface PluginRegistry {
 
     Class<? extends Plugin> getTypeForId(String pluginId) throws UnknownPluginException, PluginInstantiationException;
 
+    Class<? extends Plugin> getTypeForId(String pluginId, ClassLoader classLoader) throws UnknownPluginException, PluginInstantiationException;
+
     PluginRegistry createChild(ClassLoader childClassPath);
 }

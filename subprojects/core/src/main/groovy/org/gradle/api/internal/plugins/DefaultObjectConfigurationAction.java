@@ -18,13 +18,22 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.util.GUtil;
+import org.gradle.util.ObservableUrlClassLoader;
 
+import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -35,6 +44,9 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     private final Set<Object> targets = new LinkedHashSet<Object>();
     private final Set<Runnable> actions = new LinkedHashSet<Runnable>();
     private final Object[] defaultTargets;
+    private String group;
+    private String name;
+    private String version;
 
     public DefaultObjectConfigurationAction(FileResolver resolver, ScriptPluginFactory configurerFactory,
                                             Object... defaultTargets) {
@@ -75,6 +87,18 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
     private void applyScript(Object script) {
         URI scriptUri = resolver.resolveUri(script);
         ScriptPlugin configurer = configurerFactory.create(new UriScriptSource("script", scriptUri));
@@ -98,11 +122,52 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         for (Object target : targets) {
             if (target instanceof Project) {
                 Project project = (Project) target;
-                project.getPlugins().apply(pluginId);
+
+                if (isDependencyProvided()) {
+                    Configuration configuration = createConfigurationWithDependency(project, group, name, version);
+                    ClassLoader parentClassLoader = getParentClassLoader(project);
+                    ClassLoader classLoader = createIsolatedClassLoader(configuration, parentClassLoader);
+                    project.getPlugins().apply(pluginId, classLoader);
+                } else {
+                    project.getPlugins().apply(pluginId);
+                }
             } else {
                 throw new UnsupportedOperationException(String.format("Cannot apply plugin with id '%s' to '%s' (class: %s) as it is not a Project", pluginId, target.toString(), target.getClass().getName()));
             }
         }
+    }
+
+    private ClassLoader getParentClassLoader(Project project) {
+        GradleInternal gradleInternal = (GradleInternal) project.getGradle();
+        ClassLoader parent = gradleInternal.getScriptClassLoader();
+        return parent;
+    }
+
+    private ClassLoader createIsolatedClassLoader(Configuration configuration, ClassLoader parentClassLoader) {
+        ObservableUrlClassLoader classLoader = new ObservableUrlClassLoader(parentClassLoader);
+        for (File file : configuration.resolve()) {
+            try {
+                classLoader.addURL(file.toURI().toURL());
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return classLoader;
+    }
+
+    private Configuration createConfigurationWithDependency(Project project, String group, String name, String version) {
+        ConfigurationContainer configurationContainer = project.getBuildscript().getConfigurations();
+        String configurationName = "plugin_"+group+"_"+name+"_"+version;
+        Configuration configuration = configurationContainer.findByName(configurationName);
+        if (configuration == null) {
+            configuration = configurationContainer.add(configurationName);
+            project.getBuildscript().getDependencies().add(configurationName, group + ":" + name + ":" + version);
+        }
+        return configuration;
+    }
+
+    private boolean isDependencyProvided() {
+        return group != null || name != null || version != null;
     }
 
     public void execute() {
