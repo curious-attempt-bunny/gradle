@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.lang.Script;
 import org.gradle.api.*;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
@@ -30,8 +31,10 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
+import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
@@ -51,6 +54,7 @@ import org.gradle.configuration.ProjectEvaluator;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.Factory;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
@@ -836,15 +840,21 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public void apply(Closure closure) {
+        final DependencyFactory dependencyFactory = services.get(DependencyManagementServices.class).get(DependencyFactory.class);
+        final ClassLoaderRegistry classLoaderRegistry = services.get(ClassLoaderRegistry.class);
+
         DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(fileResolver, services.get(
-                ScriptPluginFactory.class), this);
+                ScriptPluginFactory.class), configurationContainer, dependencyFactory, classLoaderRegistry, this);
         configure(action, closure);
         action.execute();
     }
 
     public void apply(Map<String, ?> options) {
+        final DependencyFactory dependencyFactory = services.get(DependencyManagementServices.class).get(DependencyFactory.class);
+        final ClassLoaderRegistry classLoaderRegistry = services.get(ClassLoaderRegistry.class);
+
         DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(fileResolver, services.get(
-                ScriptPluginFactory.class), this);
+                ScriptPluginFactory.class), configurationContainer, dependencyFactory, classLoaderRegistry, this);
         ConfigureUtil.configureByMap(options, action);
         action.execute();
     }
