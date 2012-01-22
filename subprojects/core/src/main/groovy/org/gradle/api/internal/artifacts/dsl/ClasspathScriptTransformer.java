@@ -20,14 +20,13 @@ import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.ImportNode;
 import org.codehaus.groovy.ast.MethodNode;
 import org.codehaus.groovy.ast.ModuleNode;
-import org.codehaus.groovy.ast.expr.ArgumentListExpression;
-import org.codehaus.groovy.ast.expr.ClosureExpression;
-import org.codehaus.groovy.ast.expr.MethodCallExpression;
+import org.codehaus.groovy.ast.expr.*;
 import org.codehaus.groovy.ast.stmt.ExpressionStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
+import org.gradle.api.specs.OrSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.groovy.scripts.Transformer;
@@ -52,7 +51,7 @@ public abstract class ClasspathScriptTransformer extends AbstractScriptTransform
     }
 
     public void call(SourceUnit source) throws CompilationFailedException {
-        Spec<Statement> spec = isScriptBlock();
+        Spec<Statement> spec = isClassPathScriptStatement();
         filterStatements(source, spec);
 
         // Filter imported classes which are not available yet
@@ -111,6 +110,10 @@ public abstract class ClasspathScriptTransformer extends AbstractScriptTransform
         source.getAST().getMethods().clear();
     }
 
+    public Spec<Statement> isClassPathScriptStatement() {
+        return Specs.or(isScriptBlock(), new ApplyPluginScriptTransformer.IsApplyPluginStatement());
+    }
+
     private boolean isVisible(SourceUnit source, String className) {
         try {
             source.getClassLoader().loadClass(className);
@@ -148,7 +151,7 @@ public abstract class ClasspathScriptTransformer extends AbstractScriptTransform
         };
     }
 
-    public Spec<Statement> isScriptBlock() {
+    private Spec<Statement> isScriptBlock() {
         return new Spec<Statement>() {
             public boolean isSatisfiedBy(Statement statement) {
                 if (!(statement instanceof ExpressionStatement)) {

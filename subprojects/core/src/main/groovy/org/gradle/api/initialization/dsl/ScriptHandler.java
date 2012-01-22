@@ -22,6 +22,7 @@ import groovy.lang.Closure;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Map;
 
 /**
  * <p>A {@code ScriptHandler} allows you to manage the compilation and execution of a build script. You can declare the
@@ -106,4 +107,7 @@ public interface ScriptHandler {
      * @return The ClassLoader. Never returns null.
      */
     ClassLoader getClassLoader();
+
+
+    void apply(Map configuration);
 }

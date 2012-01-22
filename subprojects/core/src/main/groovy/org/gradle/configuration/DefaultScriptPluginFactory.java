@@ -102,7 +102,9 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 services.add(ScriptHandlerInternal.class, defaultScriptHandler);
                 classLoaderProvider = defaultScriptHandler;
             }
-            
+
+            System.out.println("Beginning first pass ["+target+"]");
+
             ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
 
             compiler.setClassloader(classLoaderProvider.getClassLoader());
@@ -117,6 +119,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
             classLoaderProvider.updateClassPath();
 
+            System.out.println("Beginning second pass ["+target+"]");
+
             compiler.setTransformer(new BuildScriptTransformer(classpathScriptTransformer));
             ScriptRunner<? extends BasicScript> runner = compiler.compile(scriptType);
 
@@ -125,6 +129,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 scriptAware.afterCompile(this, runner.getScript());
             }
             runner.run();
+
+            System.out.println("Finished second pass ["+target+"]");
         }
     }
 }

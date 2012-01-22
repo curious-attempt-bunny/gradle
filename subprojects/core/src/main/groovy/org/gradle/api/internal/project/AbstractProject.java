@@ -227,6 +227,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public void beforeCompile(ScriptPlugin configurer) {
+       System.out.println("in beforeCompile");
         if (configurer.getSource() != buildScriptSource) {
             return;
         }
@@ -235,6 +236,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public void afterCompile(ScriptPlugin configurer, org.gradle.groovy.scripts.Script script) {
+        System.out.println("in afterCompile");
         if (configurer.getSource() != buildScriptSource) {
             return;
         }

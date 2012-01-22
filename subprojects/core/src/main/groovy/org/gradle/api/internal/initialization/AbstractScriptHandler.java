@@ -26,6 +26,7 @@ import org.gradle.util.ObservableUrlClassLoader;
 
 import java.io.File;
 import java.net.URI;
+import java.util.Map;
 
 public abstract class AbstractScriptHandler implements ScriptHandlerInternal {
     private final ScriptSource scriptSource;
@@ -72,6 +73,10 @@ public abstract class AbstractScriptHandler implements ScriptHandlerInternal {
 
     public ObservableUrlClassLoader getClassLoader() {
         return classLoader;
+    }
+
+    public void apply(Map configuration) {
+        System.out.println("buildscript apply called: "+configuration.get("plugin"));
     }
 
     public File getSourceFile() {

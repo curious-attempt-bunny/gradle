@@ -36,5 +36,8 @@ public class BuildScriptTransformer implements Transformer {
         // TODO - remove this
         FixMainScriptTransformer fixMainScriptTransformer = new FixMainScriptTransformer();
         fixMainScriptTransformer.register(compilationUnit);
+
+        ApplyPluginScriptTransformer applyPluginScriptTransformer = new ApplyPluginScriptTransformer();
+        applyPluginScriptTransformer.register(compilationUnit);
     }
 }

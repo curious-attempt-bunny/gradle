@@ -30,13 +30,13 @@ public abstract class AbstractScriptTransformer extends CompilationUnit.SourceUn
 
     protected abstract int getPhase();
 
-    protected boolean isMethodOnThis(MethodCallExpression call, String name) {
+    protected static boolean isMethodOnThis(MethodCallExpression call, String name) {
         boolean isTaskMethod = call.getMethod() instanceof ConstantExpression && call.getMethod().getText().equals(
                 name);
         return isTaskMethod && targetIsThis(call);
     }
 
-    protected boolean targetIsThis(MethodCallExpression call) {
+    protected static boolean targetIsThis(MethodCallExpression call) {
         Expression target = call.getObjectExpression();
         return target instanceof VariableExpression && target.getText().equals("this");
     }

@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.FileResolver;
@@ -114,39 +116,41 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     }
 
     private void applyPlugin(String pluginNotation) {
+        System.out.println("Apply plugin with notation: "+pluginNotation);
+
         for (Object target : targets) {
             if (target instanceof Project) {
-                Project project = (Project) target;
-
-                final PluginContainer plugins;
-                String pluginId;
+                final Project project = (Project) target;
 
                 if (pluginNotation.contains(":")) {
                     final int pos = pluginNotation.lastIndexOf(':');
-                    pluginId = pluginNotation.substring(pos +1);
+                    final String pluginId = pluginNotation.substring(pos +1);
                     String dependencyNotation = pluginNotation.substring(0,pos);
 
                     Dependency dependency = dependencyFactory.createDependency(dependencyNotation);
 
-                    String configurationName = ScriptHandler.CLASSPATH_CONFIGURATION+"_"+pluginNotation.replaceAll("[^A-Za-z]", "_");
-
-                    Configuration configuration;
-                    configuration = project.getBuildscript().getConfigurations().findByName(configurationName);
-                    if (configuration == null) {
-                        configuration = project.getBuildscript().getConfigurations().add(configurationName);
-                    }
+//                    String configurationName = ScriptHandler.CLASSPATH_CONFIGURATION+"_"+pluginNotation.replaceAll("[^A-Za-z]", "_");
+//
+//                    Configuration configuration;
+//                    configuration = project.getBuildscript().getConfigurations().findByName(configurationName);
+//                    if (configuration == null) {
+//                        configuration = project.getBuildscript().getConfigurations().add(configurationName);
+//                    }
+                    Configuration configuration = project.getBuildscript().getConfigurations().getByName("classpath");
 
                     configuration.getDependencies().add(dependency);
 
-                    PluginRegistry customPluginsRegistry = new DefaultPluginRegistry(getClassLoader(configuration, classLoaderRegistry.getPluginsClassLoader()));
-
-                    plugins = new DefaultProjectsPluginContainer(customPluginsRegistry, project);
+//                    PluginRegistry customPluginsRegistry = new DefaultPluginRegistry(getClassLoader(configuration, classLoaderRegistry.getPluginsClassLoader()));
+//
+//                    plugins = new DefaultProjectsPluginContainer(customPluginsRegistry, project);
+//                    configuration.getIncoming().afterResolve(new Action<ResolvableDependencies>() {
+//                        public void execute(ResolvableDependencies resolvableDependencies) {
+//                            project.getPlugins().apply(pluginId);
+//                        }
+//                    });
                 } else {
-                    pluginId = pluginNotation;
-                    plugins = project.getPlugins();
+                    project.getPlugins().apply(pluginNotation);
                 }
-
-                plugins.apply(pluginId);
             } else {
                 throw new UnsupportedOperationException(String.format("Cannot apply plugin with id '%s' to '%s' (class: %s) as it is not a Project", pluginNotation, target.toString(), target.getClass().getName()));
             }
