@@ -75,6 +75,12 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
+    public ObjectConfigurationAction dependency(final String dependencyNotation) {
+        // TODO
+
+        return this;
+    }
+
     private void applyScript(Object script) {
         URI scriptUri = resolver.resolveUri(script);
         ScriptPlugin configurer = configurerFactory.create(new UriScriptSource("script", scriptUri));

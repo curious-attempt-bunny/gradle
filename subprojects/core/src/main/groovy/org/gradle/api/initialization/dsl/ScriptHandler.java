@@ -106,4 +106,7 @@ public interface ScriptHandler {
      * @return The ClassLoader. Never returns null.
      */
     ClassLoader getClassLoader();
+
+    /** TODO */
+    void classpathDependency(String dependencyNotation);
 }

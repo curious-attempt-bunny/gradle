@@ -29,16 +29,13 @@ class ApplyPluginDependencyIntegrationTest extends AbstractIntegrationTest {
         File buildFile = file('build.gradle')
 
         buildFile << """
-            apply plugin: 'custom'
+            apply plugin: 'custom', dependency: 'customGroup:customArtifactId:1.0'
 
             buildscript {
                 repositories {
                     flatDir {
                         dir '.'
                     }
-                }
-                dependencies {
-                    classpath 'customGroup:customArtifactId:1.0'
                 }
             }
 

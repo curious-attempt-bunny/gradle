@@ -46,14 +46,20 @@ import java.util.Map;
  */
 public abstract class ClasspathScriptTransformer extends AbstractScriptTransformer {
     protected abstract String getScriptMethodName();
+    private ApplyPluginDependencyStatementTransformer applyPluginDependencyStatementTransformer;
+
+    protected ClasspathScriptTransformer() {
+        applyPluginDependencyStatementTransformer = new ApplyPluginDependencyStatementTransformer();
+    }
 
     protected int getPhase() {
         return Phases.CONVERSION;
     }
 
     public void call(SourceUnit source) throws CompilationFailedException {
-        Spec<Statement> spec = isScriptBlock();
+        Spec<Statement> spec = Specs.or(isScriptBlock(), applyPluginDependencyStatementTransformer.getSpec());
         filterStatements(source, spec);
+        applyPluginDependencyStatementTransformer.call(source);
 
         // Filter imported classes which are not available yet
 

@@ -74,6 +74,10 @@ public abstract class AbstractScriptHandler implements ScriptHandlerInternal {
         return classLoader;
     }
 
+    public void classpathDependency(String dependencyNotation) {
+        configContainer.getByName(CLASSPATH_CONFIGURATION).getDependencies().add(dependencyHandler.create(dependencyNotation));
+    }
+
     public File getSourceFile() {
         return scriptSource.getResource().getFile();
     }
